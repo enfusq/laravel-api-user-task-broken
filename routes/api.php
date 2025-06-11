@@ -3,9 +3,11 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\TaskController;
 
 Route::apiResource('/tasks', TaskController::class);
+Route::apiResource('/tasks/{task}/comments', CommentController::class);
 Route::patch('/tasks/{task}/status', [TaskController::class, 'changeStatus']);
 
 

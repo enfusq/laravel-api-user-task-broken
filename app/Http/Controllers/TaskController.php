@@ -3,16 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-
+use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller implements HasMiddleware
 {
     public static function middleware() {
         return [
-            new Middleware('auth:sanctum', except: ['store', 'show'])
+            new Middleware('auth:sanctum', except: ['show'])
         ];
     }
     
@@ -49,6 +50,8 @@ class TaskController extends Controller implements HasMiddleware
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'due_date' => 'nullable|date',
+            'status_id' => 'nullable|exists:task_statuses,id',
+            'category_id' => 'nullable|exsists:task_categories,id'
         ]);
 
         $task = $request->user()->tasks()->create($request->all());
@@ -68,6 +71,7 @@ class TaskController extends Controller implements HasMiddleware
      */
     public function update(Request $request, Task $task)
     {
+        Gate::authorize('update', $task);
         $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -83,14 +87,17 @@ class TaskController extends Controller implements HasMiddleware
      */
     public function destroy(Task $task)
     {
+        Gate::authorize('delete', $task);
         $task->delete();
         return response()->json(null, 204);
     }
 
     public function changeStatus(Request $request, Task $task)
     {
-        $request["status_id"];
-        $task->save();
+        $request->validate([
+            "status_id" => "required|exists:task_statuses,id"
+        ]);
+        $task->update($request->all());
         return response()->json(null, 204);
     }
 }
